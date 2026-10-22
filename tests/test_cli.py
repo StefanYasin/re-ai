@@ -122,6 +122,7 @@ def test_version_flag(extra, capsys):
 def test_accepts_files_with_no_extension(tmp_path, synthetic_pe_bytes):
     source = tmp_path / "binary"
     source.write_bytes(synthetic_pe_bytes)
-    report = tmp_path / "out.md"
-    assert main(["--file", str(source), "--out", str(report), "--quiet"]) == 0
-    assert "sample" not in report.read_text(encoding="utf-8").split("\n")[0].lower()
+    assert main(["--file", str(source), "--quiet"]) == 0
+    report = tmp_path / "binary.re-ai.md"
+    assert report.exists()
+    assert report.read_text(encoding="utf-8").startswith("# Static analysis: binary")
