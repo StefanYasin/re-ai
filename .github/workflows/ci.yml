@@ -1,0 +1,29 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.10", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: python -m pip install --upgrade pip && python -m pip install -e ".[dev]"
+      - name: Tests
+        run: python -m pytest -q
+      - name: CLI smoke test
+        run: |
+          python -c "import sys; sys.path.insert(0, 'tests'); import pe_builder; open('sample.exe', 'wb').write(pe_builder.build_minimal_pe())"
+          re-ai --file sample.exe --out report.md
+          python -c "text = open('report.md', encoding='utf-8').read(); assert 'KERNEL32.dll' in text; assert '## Imports' in text; print('report ok', len(text), 'chars')"
